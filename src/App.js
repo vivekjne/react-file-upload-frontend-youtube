@@ -19,6 +19,8 @@ import CloudUpload from "@material-ui/icons/CloudUpload";
 import clsx from "clsx";
 import { LinearProgress } from "@material-ui/core";
 import axios from "axios";
+import CropImage from "./CropImage";
+
 const useStyles = makeStyles((theme) => ({
   dropzoneContainer: {
     height: 300,
@@ -72,15 +74,20 @@ function App() {
   const [preview, setPreview] = React.useState();
   const [percent, setPercent] = React.useState(0);
   const [downloadUri, setDownloadUri] = React.useState();
+  const [selectedImageFile, setSelectedImageFile] = React.useState();
 
   const buttonClassname = clsx({
     [classes.buttonSuccess]: success,
   });
 
   const onDrop = React.useCallback((acceptedFiles) => {
-    console.log(acceptedFiles);
-    setFile(acceptedFiles[0]);
-    const previewUrl = URL.createObjectURL(acceptedFiles[0]);
+    const fileDropped = acceptedFiles[0];
+    if (fileDropped["type"].split("/")[0] === "image") {
+      setSelectedImageFile(fileDropped);
+      return;
+    }
+    setFile(fileDropped);
+    const previewUrl = URL.createObjectURL(fileDropped);
     setPreview(previewUrl);
     setSuccess(false);
     setPercent(0);
@@ -116,6 +123,14 @@ function App() {
       alert(err.message);
     }
   };
+
+  const onCropSave = ({ file, preview }) => {
+    setPreview(preview);
+    setFile(file);
+    setSuccess(false);
+    setPercent(0);
+  };
+
   return (
     <>
       <CssBaseline />
@@ -228,6 +243,8 @@ function App() {
           </Grid>
         </Paper>
       </Container>
+
+      <CropImage onSave={onCropSave} selectedFile={selectedImageFile} />
     </>
   );
 }
